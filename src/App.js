@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'; 
 import Navbar from './components/layout/Navbar';
 import Users from './components/users/Users';
 import Search from './components/users/Search';
+import Alert from './components/layout/Alert';
+import About from './components/pages/About';
 import './App.css';
 import axios from 'axios';
 
 class App extends React.Component {
   state = {
     users: [],
-    loading: false
+    loading: false,
+    alert: null
   }
 
  // async componentDidMount() {
@@ -28,15 +32,36 @@ class App extends React.Component {
     this.setState({ users: res.data.items, loading: false });
   };
 
+  // Clear users from state function
+  clearUsers = () => this.setState({ users: [], loading: false })
+
+  // Set Alert
+  setAlert = (msg, type) => {
+    this.setState({ alert: { msg: msg, type: type } });
+    setTimeout(() => this.setState({ alert: null }), 5000);
+  }
+
   render() {
+    const { users, loading } = this.state;
+
     return (
+      <Router>
       <div className="App">
         <Navbar title='Github Finder' icon='fab fa-github' />
         <div className='container'>
-          <Search searchUsers={this.searchUsers} />
-          <Users loading={this.state.loading} users={this.state.users} />
+          <Alert alert={this.state.alert} />
+          <Switch>
+            <Route exact path='/' render={props => (
+              <Fragment>
+                <Search searchUsers={this.searchUsers} clearUsers={this.clearUsers} showClear={users.length > 0 ? true : false} setAlert={this.setAlert}/>
+                <Users loading={loading} users={users} />
+              </Fragment>
+            )} />
+            <Route exact path='/about' component={About} />
+          </Switch>
         </div>
       </div>
+      </Router>
     );
   }
 
